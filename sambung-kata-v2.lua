@@ -1,111 +1,65 @@
 -- =========================================================
--- RIICUY SMART AUTO KATA (RAYFIELD EDITION - MOBILE FIXED)
+-- RIICUY SMART AUTO KATA (COMPLETE EDITION)
 -- =========================================================
 
-local DEBUG_MODE = true
 local SCRIPT_VERSION = "2.2.0"
-
--- ================================
--- LOADING SCREEN (RIICUY IDENTITY)
--- ================================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
+-- LOGO LOADING RIICUY
 local loadingGui = Instance.new("ScreenGui")
 loadingGui.Name = "Riicuy_Loading"
-loadingGui.ResetOnSpawn = false
-loadingGui.IgnoreGuiInset = true
+loadingGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local textLabel = Instance.new("TextLabel")
 textLabel.Size = UDim2.new(1,0,1,0)
 textLabel.BackgroundTransparency = 1
 textLabel.TextScaled = true
-textLabel.TextColor3 = Color3.fromRGB(255, 170, 0)
+textLabel.TextColor3 = Color3.fromRGB(255, 170, 0) -- Warna Oranye Riicuy
 textLabel.Font = Enum.Font.GothamBold
-textLabel.Text = "Loading Riicuy Sambung-Kata..."
+textLabel.Text = "Loading Riicuy Script..."
 textLabel.Parent = loadingGui
 
-loadingGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+-- FUNGSI UTAMA
+task.wait(1.5)
+textLabel.Text = "Riicuy: Menyambungkan ke Server..."
 
-local function removeLoading()
-    if loadingGui then
-        loadingGui:Destroy()
-    end
-end
+-- LOAD RAYFIELD (Library Menu)
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- ================================
--- UTIL
--- ================================
-local function trim(str)
-    if not str or type(str) ~= "string" then return "" end
-    return (str:gsub("^%s*(.-)%s*$", "%1"))
-end
+local Window = Rayfield:CreateWindow({
+   Name = "Riicuy Sambung-Kata v" .. SCRIPT_VERSION,
+   LoadingTitle = "Riicuy Project",
+   LoadingSubtitle = "by rizalputraaa",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "RiicuyConfig" 
+   }
+})
 
-local function log(...)
-    if DEBUG_MODE then
-        local parts = {"[RiicuyScript]"}
-        for _, v in ipairs({...}) do
-            table.insert(parts, tostring(v))
-        end
-        print(table.concat(parts, " "))
-    end
-end
+local MainTab = Window:CreateTab("Utama", 4483362458)
 
--- ================================
--- START
--- ================================
-task.defer(function()
-    if not game:IsLoaded() then game.Loaded:Wait() end
-    task.wait(2)
+MainTab:CreateToggle({
+   Name = "Aktifkan Auto Jawab",
+   CurrentValue = false,
+   Callback = function(Value)
+      _G.AutoRiicuy = Value
+      if Value then
+          Rayfield:Notify({
+             Title = "Riicuy Active",
+             Content = "Auto Sambung Kata telah dinyalakan!",
+             Duration = 5,
+             Image = 4483362458,
+          })
+      end
+   end,
+})
 
-    local RS = game:GetService("ReplicatedStorage")
+-- Hapus Loading
+loadingGui:Destroy()
 
-    -- LOAD RAYFIELD
-    local function loadRayfield()
-        local urls = {"https://sirius.menu/rayfield", "https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/main/source"}
-        for _, url in ipairs(urls) do
-            local success, result = pcall(function() return game:HttpGet(trim(url), true) end)
-            if success and result and #result > 100 then
-                local compileSuccess, chunk = pcall(loadstring, result)
-                if compileSuccess and chunk then
-                    local execSuccess, lib = pcall(chunk)
-                    if execSuccess and type(lib) == "table" then return lib end
-                end
-            end
-        end
-        return nil
-    end
-
-    local Rayfield = loadRayfield()
-    if not Rayfield then removeLoading() return end
-
-    -- WORDLIST LOAD
-    textLabel.Text = "Riicuy: Loading WordList..."
-    local wordList = RS:WaitForChild("WordList", 60)
-    local kataModule = require(wordList:WaitForChild("IndonesianWords", 30))
-
-    -- REMOTES
-    textLabel.Text = "Riicuy: Loading Remotes..."
-    local remotes = RS:WaitForChild("Remotes", 60)
-    local SubmitWord = remotes:FindFirstChild("SubmitWord")
-    local BillboardUpdate = remotes:FindFirstChild("BillboardUpdate")
-
-    -- UI WINDOW
-    textLabel.Text = "Riicuy: Creating UI..."
-    local Window = Rayfield:CreateWindow({
-        Name = "Riicuy Sambung-Kata v"..SCRIPT_VERSION,
-        LoadingTitle = "Riicuy Script",
-        LoadingSubtitle = "Auto Sambung Kata",
-        ConfigurationSaving = {Enabled = false}
-    })
-
-    local MainTab = Window:CreateTab("Main")
-    MainTab:CreateToggle({
-        Name = "Aktifkan Auto",
-        CurrentValue = false,
-        Callback = function(v) _G.AutoEnabled = v end
-    })
-
-    removeLoading()
-    log("Riicuy Script Ready")
-end)
+Rayfield:Notify({
+   Title = "Selamat Datang!",
+   Content = "Riicuy Script Berhasil Dimuat (rizalputraaa)",
+   Duration = 5
+})
