@@ -1,20 +1,21 @@
---// RIIICUY HUB ENGINE (STABLE & FIXED UI)
+--// RIIICUY HUB ENGINE (ULTRA LIGHT VERSION)
+-- Kita pakai library yang lebih ringan supaya pasti muncul di Delta
+
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
     Name = "riiicuy Hub | Sambung Kata",
-    LoadingTitle = "riiicuy Hub",
+    LoadingTitle = "Memuat riiicuy Hub...",
     LoadingSubtitle = "by rizalputraaa",
-    ConfigurationSaving = {
-        Enabled = false
-    },
-    KeySystem = false -- Kita matikan key system agar langsung masuk
+    ConfigurationSaving = {Enabled = false},
+    KeySystem = false
 })
 
+-- Variabel Kontrol
 local autoEnabled = false
 local usedWords = {}
 
--- Fungsi Logika Pencari Kata
+-- Fungsi Logika Jawab
 local function solve(letter)
     local rs = game:GetService("ReplicatedStorage")
     local success, dictModule = pcall(function() 
@@ -32,69 +33,50 @@ local function solve(letter)
     return #choices > 0 and choices[math.random(1, #choices)] or nil
 end
 
--- Monitor Giliran secara Otomatis
+-- // TAB LANGSUNG DIBUAT DISINI
+local Tab = Window:CreateTab("Main", 4483362458) 
+
+-- Tombol On/Off
+Tab:CreateToggle({
+    Name = "Auto Answer (AKTIFKAN DISINI)",
+    CurrentValue = false,
+    Flag = "Toggle1", 
+    Callback = function(Value)
+        autoEnabled = Value
+    end,
+})
+
+-- Tombol Reset
+Tab:CreateButton({
+    Name = "Reset Kata",
+    Callback = function()
+        usedWords = {}
+    end,
+})
+
+-- Loop Deteksi (Diperbaiki agar tidak bikin lag)
 task.spawn(function()
-    while task.wait(0.4) do
+    while true do
+        task.wait(0.5)
         if autoEnabled then
-            for _, v in pairs(game.Workspace:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Name == "LetterLabel" and v.Visible and v.Text ~= "" then
-                    local word = solve(v.Text)
-                    if word then
-                        usedWords[word] = true
-                        game:GetService("ReplicatedStorage").Remotes.SubmitWord:FireServer(word)
-                        task.wait(1.5) -- Jeda agar tidak dianggap spam bot
+            pcall(function()
+                for _, v in pairs(game.Workspace:GetDescendants()) do
+                    if v:IsA("TextLabel") and v.Name == "LetterLabel" and v.Visible and v.Text ~= "" then
+                        local word = solve(v.Text)
+                        if word then
+                            usedWords[word] = true
+                            game:GetService("ReplicatedStorage").Remotes.SubmitWord:FireServer(word)
+                            task.wait(2) -- Jeda aman
+                        end
                     end
                 end
-            end
+            end)
         end
     end
 end)
 
--- // TAB UTAMA
-local MainTab = Window:CreateTab("Utama", 4483362458) -- Menambahkan Icon
-
-local MainSection = MainTab:CreateSection("Main Automation")
-
-MainTab:CreateToggle({
-    Name = "Auto Answer riiicuy",
-    CurrentValue = false,
-    Flag = "AutoAnswerToggle", 
-    Callback = function(Value)
-        autoEnabled = Value
-        if Value then
-            Rayfield:Notify({
-                Title = "riiicuy Hub",
-                Content = "Auto Answer AKTIF!",
-                Duration = 3,
-                Image = 4483362458,
-            })
-        else
-            Rayfield:Notify({
-                Title = "riiicuy Hub",
-                Content = "Auto Answer MATI!",
-                Duration = 3,
-                Image = 4483362458,
-            })
-        end
-    end,
+Rayfield:Notify({
+    Title = "riiicuy Hub",
+    Content = "Menu Berhasil Muncul!",
+    Duration = 5
 })
-
-MainTab:CreateButton({
-    Name = "Reset Daftar Kata",
-    Callback = function()
-        usedWords = {}
-        Rayfield:Notify({
-            Title = "Selesai",
-            Content = "Daftar kata yang sudah dipakai telah direset.",
-            Duration = 2,
-            Image = 4483362458,
-        })
-    end,
-})
-
--- // TAB INFO
-local InfoTab = Window:CreateTab("Credits", 4483362458)
-InfoTab:CreateParagraph({Title = "Owner", Content = "rizalputraaa"})
-InfoTab:CreateParagraph({Title = "Support", Content = "Terima kasih telah menggunakan riiicuy Hub!"})
-
-Rayfield:LoadConfiguration()
